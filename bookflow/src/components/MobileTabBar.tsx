@@ -19,7 +19,7 @@ export const MobileTabBar: React.FC = () => {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/80 dark:border-slate-800/80 shadow-lg px-2 pb-safe"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 shadow-lg px-2 pb-safe"
       aria-label="Navegação Inferior"
     >
       <div

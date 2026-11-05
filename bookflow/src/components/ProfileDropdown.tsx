@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Settings,
   FileText,
@@ -176,7 +177,7 @@ export const ProfileDropdown: React.FC = () => {
         <div
           role="menu"
           aria-orientation="vertical"
-          className="absolute right-0 top-full mt-2 w-72 sm:w-80 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+          className="absolute right-0 top-full mt-2 w-72 sm:w-80 max-w-[calc(100vw-1.5rem)] rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
         >
           {/* Cabeçalho do Perfil */}
           <div className="p-4 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800/60 dark:to-slate-900 border-b border-slate-100 dark:border-slate-800">
@@ -339,236 +340,244 @@ export const ProfileDropdown: React.FC = () => {
       )}
 
       {/* Modal: Diagnóstico de Conexão */}
-      {isHealthOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in select-none"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="health-modal-title"
-          onClick={() => setIsHealthOpen(false)}
-        >
+      {isHealthOpen &&
+        createPortal(
           <div
-            className="relative w-full max-w-md rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl p-6 sm:p-7 overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-slate-950/80 backdrop-blur-xs overflow-y-auto animate-fade-in select-none"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="health-modal-title"
+            onClick={() => setIsHealthOpen(false)}
           >
-            {/* Top Header */}
-            <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 mb-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shadow-xs">
-                  <Activity className="w-5 h-5" />
+            <div
+              className="relative w-full max-w-md my-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl p-6 sm:p-7 overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Top Header */}
+              <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 mb-4 shrink-0">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex items-center justify-center shadow-xs">
+                    <Activity className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-bold block">
+                      Monitor de Infraestrutura
+                    </span>
+                    <h3
+                      id="health-modal-title"
+                      className="text-base font-bold text-slate-900 dark:text-white"
+                    >
+                      Diagnóstico de Conexão
+                    </h3>
+                  </div>
                 </div>
-                <div>
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-bold block">
-                    Monitor de Infraestrutura
-                  </span>
-                  <h3
-                    id="health-modal-title"
-                    className="text-base font-bold text-slate-900 dark:text-white"
-                  >
-                    Diagnóstico de Conexão
-                  </h3>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsHealthOpen(false)}
+                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  aria-label="Fechar"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsHealthOpen(false)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                aria-label="Fechar"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
 
-            {/* Status Card */}
-            <div className="space-y-4 my-2">
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
-                    Status do Banco de Dados
-                  </span>
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`w-2.5 h-2.5 rounded-full ${
-                        databaseHealth?.status === 'healthy'
-                          ? 'bg-emerald-500 animate-pulse'
+              {/* Status Card */}
+              <div className="space-y-4 my-2">
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-slate-600 dark:text-slate-400">
+                      Status do Banco de Dados
+                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`w-2.5 h-2.5 rounded-full ${
+                          databaseHealth?.status === 'healthy'
+                            ? 'bg-emerald-500 animate-pulse'
+                            : databaseHealth?.status === 'degraded'
+                            ? 'bg-amber-500'
+                            : 'bg-rose-500'
+                        }`}
+                      />
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">
+                        {databaseHealth?.status === 'healthy'
+                          ? '100% Operacional'
                           : databaseHealth?.status === 'degraded'
-                          ? 'bg-amber-500'
-                          : 'bg-rose-500'
-                      }`}
-                    />
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">
-                      {databaseHealth?.status === 'healthy'
-                        ? '100% Operacional'
-                        : databaseHealth?.status === 'degraded'
-                        ? 'Latência Elevada'
-                        : 'Modo Local / Offline'}
-                    </span>
+                          ? 'Latência Elevada'
+                          : 'Modo Local / Offline'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 text-xs">
+                    <div>
+                      <span className="text-[11px] text-slate-400 dark:text-slate-500 block">
+                        Tempo de Resposta (Ping)
+                      </span>
+                      <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
+                        {databaseHealth?.latencyMs ? `${databaseHealth.latencyMs} ms` : '--'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-[11px] text-slate-400 dark:text-slate-500 block">
+                        Nuvem Sincronizada
+                      </span>
+                      <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">
+                        Supabase Cloud
+                      </span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 text-xs">
-                  <div>
-                    <span className="text-[11px] text-slate-400 dark:text-slate-500 block">
-                      Tempo de Resposta (Ping)
-                    </span>
-                    <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
-                      {databaseHealth?.latencyMs ? `${databaseHealth.latencyMs} ms` : '--'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-[11px] text-slate-400 dark:text-slate-500 block">
-                      Nuvem Sincronizada
-                    </span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">
-                      Supabase Cloud
-                    </span>
-                  </div>
-                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  {databaseHealth?.message ||
+                    'Sua biblioteca, metas e sessões estão protegidas com sincronização contínua e criptografia ponta a ponta.'}
+                </p>
               </div>
 
-              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                {databaseHealth?.message ||
-                  'Sua biblioteca, metas e sessões estão protegidas com sincronização contínua e criptografia ponta a ponta.'}
-              </p>
-            </div>
+              {/* Ações do Modal */}
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 mt-4 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleManualHealthCheck}
+                  disabled={isCheckingHealth}
+                  className="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 text-amber-500 ${isCheckingHealth ? 'animate-spin' : ''}`} />
+                  <span>{isCheckingHealth ? 'Testando...' : 'Testar Novamente'}</span>
+                </button>
 
-            {/* Ações do Modal */}
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 mt-4">
-              <button
-                type="button"
-                onClick={handleManualHealthCheck}
-                disabled={isCheckingHealth}
-                className="px-3.5 py-2 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors flex items-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 text-amber-500 ${isCheckingHealth ? 'animate-spin' : ''}`} />
-                <span>{isCheckingHealth ? 'Testando...' : 'Testar Novamente'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setIsHealthOpen(false)}
-                className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-amber-600 dark:hover:bg-amber-500 text-xs font-bold cursor-pointer"
-              >
-                Fechar
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setIsHealthOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-amber-600 dark:hover:bg-amber-500 text-xs font-bold cursor-pointer transition-colors"
+                >
+                  Fechar
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
       {/* Modal: Termos de Uso */}
-      {isTermsOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in select-none"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setIsTermsOpen(false)}
-        >
+      {isTermsOpen &&
+        createPortal(
           <div
-            className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl p-6 sm:p-7 max-h-[85vh] flex flex-col justify-between"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-slate-950/80 backdrop-blur-xs overflow-y-auto animate-fade-in select-none"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="terms-modal-title"
+            onClick={() => setIsTermsOpen(false)}
           >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-amber-500" />
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  Termos de Uso do BookFlow
-                </h3>
+            <div
+              className="relative w-full max-w-lg my-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl p-6 sm:p-7 max-h-[85vh] sm:max-h-[80vh] flex flex-col justify-between overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-amber-500" />
+                  <h3 id="terms-modal-title" className="text-sm font-bold text-slate-900 dark:text-white">
+                    Termos de Uso do BookFlow
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsTermsOpen(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  aria-label="Fechar"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsTermsOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
-                aria-label="Fechar"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
 
-            <div className="my-4 text-xs text-slate-600 dark:text-slate-300 space-y-3 overflow-y-auto pr-1">
-              <p>
-                <strong>1. Aceitação dos Termos:</strong> Ao utilizar o BookFlow, você concorda em gerenciar seu acervo pessoal de leitura de acordo com as diretrizes aqui estabelecidas.
-              </p>
-              <p>
-                <strong>2. Propriedade dos Seus Dados:</strong> Todo o seu histórico de leitura, notas, livros cadastrados e sessões pertencem única e exclusivamente a você. Você tem o direito de exportar seus dados a qualquer momento via arquivo JSON ou planilha CSV.
-              </p>
-              <p>
-                <strong>3. Sincronização em Nuvem e Modo Local:</strong> O BookFlow oferece sincronização contínua com seu banco de dados Supabase e modo offline/local para que você nunca perca suas sessões de leitura mesmo sem internet.
-              </p>
-              <p>
-                <strong>4. Disponibilidade do Serviço:</strong> Nos empenhamos em manter 99.9% de disponibilidade em todos os serviços. Em caso de manutenção programada, avisos globais serão exibidos com antecedência.
-              </p>
-            </div>
+              <div className="my-4 text-xs sm:text-[13px] leading-relaxed text-slate-600 dark:text-slate-300 space-y-3.5 overflow-y-auto pr-1.5 flex-1 select-text">
+                <p>
+                  <strong>1. Aceitação dos Termos:</strong> Ao utilizar o BookFlow, você concorda em gerenciar seu acervo pessoal de leitura de acordo com as diretrizes aqui estabelecidas.
+                </p>
+                <p>
+                  <strong>2. Propriedade dos Seus Dados:</strong> Todo o seu histórico de leitura, notas, livros cadastrados e sessões pertencem única e exclusivamente a você. Você tem o direito de exportar seus dados a qualquer momento via arquivo JSON ou planilha CSV.
+                </p>
+                <p>
+                  <strong>3. Sincronização em Nuvem e Modo Local:</strong> O BookFlow oferece sincronização contínua com seu banco de dados Supabase e modo offline/local para que você nunca perca suas sessões de leitura mesmo sem internet.
+                </p>
+                <p>
+                  <strong>4. Disponibilidade do Serviço:</strong> Nos empenhamos em manter 99.9% de disponibilidade em todos os serviços. Em caso de manutenção programada, avisos globais serão exibidos com antecedência.
+                </p>
+              </div>
 
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setIsTermsOpen(false)}
-                className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-amber-600 text-xs font-bold cursor-pointer"
-              >
-                Entendi
-              </button>
+              <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800 flex justify-end shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsTermsOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-amber-600 dark:hover:bg-amber-500 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Entendi
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
       {/* Modal: Política de Privacidade */}
-      {isPrivacyOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in select-none"
-          role="dialog"
-          aria-modal="true"
-          onClick={() => setIsPrivacyOpen(false)}
-        >
+      {isPrivacyOpen &&
+        createPortal(
           <div
-            className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl p-6 sm:p-7 max-h-[85vh] flex flex-col justify-between"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-slate-950/80 backdrop-blur-xs overflow-y-auto animate-fade-in select-none"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="privacy-modal-title"
+            onClick={() => setIsPrivacyOpen(false)}
           >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2">
-                <Lock className="w-4 h-4 text-emerald-500" />
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  Política de Privacidade & Proteção de Dados
-                </h3>
+            <div
+              className="relative w-full max-w-lg my-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl p-6 sm:p-7 max-h-[85vh] sm:max-h-[80vh] flex flex-col justify-between overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-emerald-500" />
+                  <h3 id="privacy-modal-title" className="text-sm font-bold text-slate-900 dark:text-white">
+                    Política de Privacidade & Proteção de Dados
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPrivacyOpen(false)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  aria-label="Fechar"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setIsPrivacyOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 cursor-pointer"
-                aria-label="Fechar"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
 
-            <div className="my-4 text-xs text-slate-600 dark:text-slate-300 space-y-3 overflow-y-auto pr-1">
-              <p>
-                <strong>1. Compromisso com a Privacidade:</strong> O BookFlow não comercializa, não compartilha e não expõe suas informações de leitura ou dados pessoais a terceiros.
-              </p>
-              <p>
-                <strong>2. Segurança na Autenticação:</strong> A autenticação utiliza o protocolo seguro do Supabase Auth com criptografia TLS de ponta a ponta e senhas com hash criptográfico irreversível.
-              </p>
-              <p>
-                <strong>3. Armazenamento Local e Cookies:</strong> Utilizamos armazenamento seguro no seu navegador apenas para preservar suas preferências visuais (tema claro/escuro, cores de perfil e lembretes diários).
-              </p>
-              <p>
-                <strong>4. Exclusão de Conta e Dados:</strong> Você pode solicitar a remoção integral de suas informações ou restaurar configurações padrão a qualquer instante pelo painel de Configurações.
-              </p>
-            </div>
+              <div className="my-4 text-xs sm:text-[13px] leading-relaxed text-slate-600 dark:text-slate-300 space-y-3.5 overflow-y-auto pr-1.5 flex-1 select-text">
+                <p>
+                  <strong>1. Compromisso com a Privacidade:</strong> O BookFlow não comercializa, não compartilha e não expõe suas informações de leitura ou dados pessoais a terceiros.
+                </p>
+                <p>
+                  <strong>2. Segurança na Autenticação:</strong> A autenticação utiliza o protocolo seguro do Supabase Auth com criptografia TLS de ponta a ponta e senhas com hash criptográfico irreversível.
+                </p>
+                <p>
+                  <strong>3. Armazenamento Local e Cookies:</strong> Utilizamos armazenamento seguro no seu navegador apenas para preservar suas preferências visuais (tema claro/escuro, cores de perfil e lembretes diários).
+                </p>
+                <p>
+                  <strong>4. Exclusão de Conta e Dados:</strong> Você pode solicitar a remoção integral de suas informações ou restaurar configurações padrão a qualquer instante pelo painel de Configurações.
+                </p>
+              </div>
 
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setIsPrivacyOpen(false)}
-                className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-amber-600 text-xs font-bold cursor-pointer"
-              >
-                Compreendido
-              </button>
+              <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800 flex justify-end shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsPrivacyOpen(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-amber-600 dark:hover:bg-amber-500 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Compreendido
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </div>
   );
 };

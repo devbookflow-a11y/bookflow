@@ -905,8 +905,8 @@ export const LibraryView: React.FC<LibraryViewProps> = ({ initialStatusFilter = 
 
       {/* Floating Batch Action Bar */}
       {selectedBookIds.length > 0 && (
-        <div className="fixed bottom-6 inset-x-0 mx-auto max-w-3xl z-40 px-4 animate-in fade-in slide-in-from-bottom-5 duration-200">
-          <div className="bg-slate-900/95 dark:bg-slate-900/95 backdrop-blur-md text-white rounded-2xl shadow-2xl border border-slate-700/80 p-3 sm:p-4 flex flex-col md:flex-row items-center justify-between gap-3">
+        <div className="fixed bottom-20 md:bottom-6 inset-x-0 mx-auto max-w-3xl z-40 px-3 sm:px-4 animate-in fade-in slide-in-from-bottom-5 duration-200">
+          <div className="bg-slate-900 text-white rounded-2xl shadow-2xl border border-slate-700/80 p-3 sm:p-4 flex flex-col md:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-3 w-full md:w-auto justify-between md:justify-start">
               <div className="flex items-center gap-2">
                 <span className="flex items-center justify-center w-7 h-7 rounded-xl bg-amber-500 text-slate-950 font-black text-xs">

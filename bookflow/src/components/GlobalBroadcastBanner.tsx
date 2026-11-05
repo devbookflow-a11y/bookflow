@@ -91,7 +91,7 @@ export const GlobalBroadcastBanner: React.FC = () => {
   return (
     <div
       role="alert"
-      className={`relative z-30 border-b backdrop-blur-md px-4 py-2.5 transition-all animate-fade-in ${config.bg}`}
+      className={`relative z-30 border-b px-4 py-2.5 transition-all animate-fade-in ${config.bg}`}
     >
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 text-xs sm:text-sm">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">

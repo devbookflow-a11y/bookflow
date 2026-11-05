@@ -73,24 +73,24 @@ export const supabaseDataService = {
 
     const bookIds = booksData.map((b) => b.id);
 
-    // 2. Buscar sessões associadas aos livros
+    // 2. Buscar todas as sessões de leitura do usuário diretamente por user_id (evita limites de URL e garante histórico completo)
     const { data: sessionsData, error: sessionsError } = await client
       .from('reading_sessions')
       .select('*')
       .eq('user_id', userId)
-      .in('book_id', bookIds)
+      .limit(5000)
       .order('timestamp', { ascending: false });
 
     if (sessionsError) {
       console.warn('[SupabaseData] Aviso ao buscar sessões:', sessionsError);
     }
 
-    // 3. Buscar notas associadas aos livros
+    // 3. Buscar todas as notas associadas ao usuário diretamente por user_id
     const { data: notesData, error: notesError } = await client
       .from('book_notes')
       .select('*')
       .eq('user_id', userId)
-      .in('book_id', bookIds)
+      .limit(5000)
       .order('created_at', { ascending: false });
 
     if (notesError) {

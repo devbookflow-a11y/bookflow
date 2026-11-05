@@ -88,14 +88,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       localStorage.removeItem(STORAGE_KEY_DEMO_USER);
       // Remove todas as chaves de sessão e tokens do Supabase gravadas no navegador
-      const keysToRemove: string[] = [];
+      const keysToRemove: string[] = [
+        'bookflow_books_v1',
+        'bookflow_active_book_id_v1',
+        'bookflow_goal_v1',
+        'bookflow_categories_v1',
+        'bookflow_reading_reminders_v1',
+      ];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key && (key.startsWith('sb-') || key.includes('supabase.auth.token') || key.startsWith('bookflow_user_'))) {
           keysToRemove.push(key);
         }
       }
-      keysToRemove.forEach((k) => localStorage.removeItem(k));
+      keysToRemove.forEach((k) => {
+        try {
+          localStorage.removeItem(k);
+        } catch {}
+      });
     } catch {
       // fallback
     }

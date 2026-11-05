@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useMemo, useCall
 import { Book, BookNote, BookStatus, ReadingGoal, ViewTab, ReadingReminderSettings, DEFAULT_REMINDER_SETTINGS, ReadingSession } from '../types/book';
 import { getTodayString } from '../utils/dateUtils';
 import { useAuth } from './AuthContext';
+import { getSupabaseClient } from '../services/supabaseClient';
 import { supabaseDataService } from '../services/supabaseDataService';
 import { supabaseAdminService } from '../services/supabaseAdminService';
 import { databaseHealthService, DatabaseHealthStatus } from '../services/databaseHealthService';
@@ -432,6 +433,12 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
     repoSaveActiveBookId(id);
   }, []);
 
+  // Constante com IDs de livros de demonstração padrão (nunca devem poluir contas autenticadas)
+  const DEMO_BOOK_IDS = useMemo(
+    () => new Set(['book-1', 'book-2', 'book-3', 'book-4', 'book-5', 'book-6', 'book-7', 'book-8', 'book-9']),
+    []
+  );
+
   // Sync data with Supabase cloud when authenticated
   const syncWithSupabase = useCallback(async () => {
     if (!user || user.isDemo) return;
@@ -444,15 +451,13 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
         supabaseDataService.fetchUserReminder(user.id),
       ]);
 
-      // Smart Bidirectional Merge:
-      // Preserva e consolida livros locais que ainda não foram sincronizados com a nuvem
       const localBooks = repoGetBooks();
       let finalBooks: Book[] = [];
 
       if (remoteBooks && remoteBooks.length > 0) {
         const remoteIds = new Set(remoteBooks.map((b) => b.id));
-        // Livros locais que não existem no banco remoto (ex: recém-importados)
-        const localOnly = localBooks.filter((b) => !remoteIds.has(b.id));
+        // Apenas livros locais criados pelo usuário que não sejam os de demonstração
+        const localOnly = localBooks.filter((b) => !remoteIds.has(b.id) && !DEMO_BOOK_IDS.has(b.id));
 
         // Para livros existentes em ambos, mantém o que possui maior updatedAt ou mais sessões/notas
         const mergedRemote = remoteBooks.map((rBook) => {
@@ -475,13 +480,20 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (localOnly.length > 0) {
           await supabaseDataService.bulkUpsertBooks(user.id, localOnly);
         }
-      } else if (localBooks.length > 0) {
-        // Banco remoto vazio: salva catálogo local completo na nuvem
-        finalBooks = localBooks;
-        setBooks(finalBooks);
-        await supabaseDataService.bulkUpsertBooks(user.id, finalBooks);
       } else {
-        setBooks([]);
+        // Banco remoto ainda sem livros: verifica se existem livros locais criados pelo usuário (não-demo)
+        const userCreatedLocal = localBooks.filter((b) => !DEMO_BOOK_IDS.has(b.id));
+        if (userCreatedLocal.length > 0) {
+          finalBooks = userCreatedLocal;
+          setBooks(finalBooks);
+          repoSaveBooks(finalBooks);
+          await supabaseDataService.bulkUpsertBooks(user.id, finalBooks);
+        } else {
+          // Usuário recém-criado: inicia com estante limpa vinculada à sua conta
+          finalBooks = [];
+          setBooks([]);
+          repoSaveBooks([]);
+        }
       }
 
       if (remoteGoal) {
@@ -510,7 +522,7 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } finally {
       setIsSyncing(false);
     }
-  }, [user, goal, categories, reminderSettings]);
+  }, [user, goal, categories, reminderSettings, DEMO_BOOK_IDS]);
 
   // Synchronize with Supabase when authenticated user changes
   useEffect(() => {
@@ -518,6 +530,83 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
       syncWithSupabase();
     }
   }, [user?.id]);
+
+  // Realtime Supabase Channel & Multi-Device Sync (Auto-Sync ao vivo e ao reabrir/focar no mobile)
+  useEffect(() => {
+    if (!user || user.isDemo) return;
+
+    const client = getSupabaseClient();
+    if (!client) return;
+
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const triggerDebouncedSync = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        syncWithSupabase();
+      }, 400);
+    };
+
+    // Subscrição em tempo real aos canais das tabelas do usuário
+    const channelName = `realtime_user_${user.id}_${Date.now()}`;
+    const channel = client
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'books',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          triggerDebouncedSync();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reading_sessions',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          triggerDebouncedSync();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'reading_goals',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          triggerDebouncedSync();
+        }
+      )
+      .subscribe();
+
+    // Sincronização instantânea ao alternar abas ou desbloquear smartphone/tablet
+    const handleVisibilityOrFocus = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        triggerDebouncedSync();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityOrFocus);
+    window.addEventListener('focus', handleVisibilityOrFocus);
+
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      document.removeEventListener('visibilitychange', handleVisibilityOrFocus);
+      window.removeEventListener('focus', handleVisibilityOrFocus);
+      try {
+        client.removeChannel(channel);
+      } catch {}
+    };
+  }, [user?.id, syncWithSupabase]);
 
   // Sync theme with HTML document and repository
   useEffect(() => {

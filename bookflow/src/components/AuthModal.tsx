@@ -4,6 +4,7 @@
  */
 
 import React, { useState, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   Mail,
@@ -35,7 +36,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isFullScreen = false }) =>
     signIn,
     signUp,
     resetPassword,
-    loginAsDemoUser,
     isAuthModalOpen,
     closeAuthModal,
   } = useAuth();
@@ -451,29 +451,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isFullScreen = false }) =>
                   )}
                 </button>
               </form>
-
-              {/* Linha Divisória e Opção de Modo Demonstração */}
-              {mode !== 'forgot_password' && (
-                <>
-                  <div className="relative my-4">
-                    <div className="absolute inset-0 flex items-center">
-                      <div className="w-full border-t border-slate-200 dark:border-slate-800" />
-                    </div>
-                    <div className="relative flex justify-center text-[10px] uppercase font-bold text-slate-400">
-                      <span className="bg-white dark:bg-slate-900 px-3">Ou acesse agora</span>
-                    </div>
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => loginAsDemoUser()}
-                    className="w-full py-2.5 px-3 rounded-xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold flex items-center justify-center gap-2 transition-colors"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Continuar em Modo Demonstração</span>
-                  </button>
-                </>
-              )}
             </div>
 
             {/* Links Discretos de Termos de Uso e Política de Privacidade */}
@@ -499,112 +476,122 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isFullScreen = false }) =>
       </div>
 
       {/* Modal Interno: Termos de Uso */}
-      {activeLegalModal === 'terms' && (
-        <div
-          className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in"
-          onClick={() => setActiveLegalModal(null)}
-        >
+      {activeLegalModal === 'terms' &&
+        createPortal(
           <div
-            className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl p-6 sm:p-7 max-h-[85vh] flex flex-col justify-between"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-slate-950/80 backdrop-blur-xs overflow-y-auto animate-fade-in"
+            role="dialog"
+            aria-modal="true"
+            onClick={() => setActiveLegalModal(null)}
           >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-amber-500" />
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  Termos de Uso do BookFlow
-                </h3>
+            <div
+              className="relative w-full max-w-lg my-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl p-6 sm:p-7 max-h-[85vh] sm:max-h-[80vh] flex flex-col justify-between overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-amber-500" />
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    Termos de Uso do BookFlow
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveLegalModal(null)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  aria-label="Fechar"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setActiveLegalModal(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
 
-            <div className="my-4 text-xs text-slate-600 dark:text-slate-300 space-y-3 overflow-y-auto pr-1">
-              <p>
-                <strong>1. Aceitação dos Termos:</strong> Ao utilizar a aplicação BookFlow, você concorda em gerenciar seu acervo pessoal de leitura de acordo com as diretrizes aqui estabelecidas.
-              </p>
-              <p>
-                <strong>2. Propriedade dos Seus Dados:</strong> Todo o seu histórico de leitura, notas, livros cadastrados e sessões pertencem única e exclusivamente a você. Você tem o direito de exportar seus dados a qualquer momento via arquivo JSON ou planilha CSV.
-              </p>
-              <p>
-                <strong>3. Sincronização em Nuvem e Fallback:</strong> O BookFlow oferece sincronização contínua e modo offline/local para que você nunca perca suas sessões de leitura mesmo sem internet.
-              </p>
-              <p>
-                <strong>4. Disponibilidade do Serviço:</strong> Nos empenhamos em manter alta disponibilidade em todos os serviços. Em caso de manutenção temporária, avisos globais serão exibidos com antecedência.
-              </p>
-            </div>
+              <div className="my-4 text-xs sm:text-[13px] leading-relaxed text-slate-600 dark:text-slate-300 space-y-3.5 overflow-y-auto pr-1.5 flex-1 select-text">
+                <p>
+                  <strong>1. Aceitação dos Termos:</strong> Ao utilizar a aplicação BookFlow, você concorda em gerenciar seu acervo pessoal de leitura de acordo com as diretrizes aqui estabelecidas.
+                </p>
+                <p>
+                  <strong>2. Propriedade dos Seus Dados:</strong> Todo o seu histórico de leitura, notas, livros cadastrados e sessões pertencem única e exclusivamente a você. Você tem o direito de exportar seus dados a qualquer momento via arquivo JSON ou planilha CSV.
+                </p>
+                <p>
+                  <strong>3. Sincronização em Nuvem e Fallback:</strong> O BookFlow oferece sincronização contínua e modo offline/local para que você nunca perca suas sessões de leitura mesmo sem internet.
+                </p>
+                <p>
+                  <strong>4. Disponibilidade do Serviço:</strong> Nos empenhamos em manter alta disponibilidade em todos os serviços. Em caso de manutenção temporária, avisos globais serão exibidos com antecedência.
+                </p>
+              </div>
 
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setActiveLegalModal(null)}
-                className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-amber-600 text-xs font-bold"
-              >
-                Entendi
-              </button>
+              <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800 flex justify-end shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setActiveLegalModal(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-amber-600 dark:hover:bg-amber-500 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Entendi
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
       {/* Modal Interno: Política de Privacidade */}
-      {activeLegalModal === 'privacy' && (
-        <div
-          className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in"
-          onClick={() => setActiveLegalModal(null)}
-        >
+      {activeLegalModal === 'privacy' &&
+        createPortal(
           <div
-            className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl p-6 sm:p-7 max-h-[85vh] flex flex-col justify-between"
-            onClick={(e) => e.stopPropagation()}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-slate-950/80 backdrop-blur-xs overflow-y-auto animate-fade-in"
+            role="dialog"
+            aria-modal="true"
+            onClick={() => setActiveLegalModal(null)}
           >
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2">
-                <Shield className="w-4 h-4 text-emerald-500" />
-                <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                  Política de Privacidade & Proteção de Dados
-                </h3>
+            <div
+              className="relative w-full max-w-lg my-auto rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl p-6 sm:p-7 max-h-[85vh] sm:max-h-[80vh] flex flex-col justify-between overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between pb-3.5 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-emerald-500" />
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    Política de Privacidade & Proteção de Dados
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveLegalModal(null)}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                  aria-label="Fechar"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setActiveLegalModal(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
 
-            <div className="my-4 text-xs text-slate-600 dark:text-slate-300 space-y-3 overflow-y-auto pr-1">
-              <p>
-                <strong>1. Compromisso com a Privacidade:</strong> O BookFlow não comercializa, não compartilha e não expõe suas informações de leitura ou dados pessoais a terceiros.
-              </p>
-              <p>
-                <strong>2. Segurança na Autenticação:</strong> A autenticação utiliza conexões criptografadas com proteção de ponta a ponta e senhas protegidas com algoritmos de hash seguros.
-              </p>
-              <p>
-                <strong>3. Armazenamento Local e Preferências:</strong> Utilizamos armazenamento seguro no seu navegador apenas para preservar suas preferências visuais (tema claro/escuro, cores de perfil e metas diárias).
-              </p>
-              <p>
-                <strong>4. Exclusão de Conta e Dados:</strong> Você pode solicitar a remoção integral de suas informações ou restaurar configurações padrão a qualquer instante pelo painel de Configurações.
-              </p>
-            </div>
+              <div className="my-4 text-xs sm:text-[13px] leading-relaxed text-slate-600 dark:text-slate-300 space-y-3.5 overflow-y-auto pr-1.5 flex-1 select-text">
+                <p>
+                  <strong>1. Compromisso com a Privacidade:</strong> O BookFlow não comercializa, não compartilha e não expõe suas informações de leitura ou dados pessoais a terceiros.
+                </p>
+                <p>
+                  <strong>2. Segurança na Autenticação:</strong> A autenticação utiliza conexões criptografadas com proteção de ponta a ponta e senhas protegidas com algoritmos de hash seguros.
+                </p>
+                <p>
+                  <strong>3. Armazenamento Local e Preferências:</strong> Utilizamos armazenamento seguro no seu navegador apenas para preservar suas preferências visuais (tema claro/escuro, cores de perfil e metas diárias).
+                </p>
+                <p>
+                  <strong>4. Exclusão de Conta e Dados:</strong> Você pode solicitar a remoção integral de suas informações ou restaurar configurações padrão a qualquer instante pelo painel de Configurações.
+                </p>
+              </div>
 
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setActiveLegalModal(null)}
-                className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-amber-600 text-xs font-bold"
-              >
-                Compreendido
-              </button>
+              <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800 flex justify-end shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setActiveLegalModal(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-900 text-white dark:bg-amber-600 dark:hover:bg-amber-500 text-xs font-bold transition-colors cursor-pointer"
+                >
+                  Compreendido
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
     </>
   );
 };

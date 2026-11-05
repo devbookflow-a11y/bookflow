@@ -135,7 +135,7 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside
-      className={`hidden md:flex flex-col shrink-0 z-20 border-r border-slate-200/80 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/70 backdrop-blur-md h-[calc(100vh-65px)] sticky top-[65px] select-none justify-between overflow-y-auto transition-all duration-300 ease-in-out ${
+      className={`hidden md:flex flex-col shrink-0 z-20 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 h-[calc(100vh-65px)] sticky top-[65px] select-none justify-between overflow-y-auto transition-all duration-300 ease-in-out ${
         isSidebarCollapsed ? 'w-16 lg:w-20 p-2.5 lg:p-3' : 'w-64 lg:w-72 p-4 lg:p-5'
       }`}
     >

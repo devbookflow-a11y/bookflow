@@ -78,8 +78,14 @@ const HARDCODED_SUPABASE_ANON_KEY = '';
  * Carrega a configuração ativa do Supabase com validação e sanitização estritas
  */
 export function getSupabaseConfig(): SupabaseConfig {
-  const envUrl = sanitizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL);
-  const envKey = sanitizeSupabaseKey(import.meta.env.VITE_SUPABASE_ANON_KEY);
+  const envUrl = sanitizeSupabaseUrl(
+    import.meta.env.VITE_SUPABASE_URL ||
+    (typeof process !== 'undefined' && process.env ? process.env.VITE_SUPABASE_URL : undefined)
+  );
+  const envKey = sanitizeSupabaseKey(
+    import.meta.env.VITE_SUPABASE_ANON_KEY ||
+    (typeof process !== 'undefined' && process.env ? process.env.VITE_SUPABASE_ANON_KEY : undefined)
+  );
 
   if (envUrl && envKey) {
     return {
@@ -457,7 +463,8 @@ FOR ALL USING (
   public.is_admin()
 ) WITH CHECK (
   auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text
+  auth.uid()::text = user_id::text OR 
+  public.is_admin()
 );
 
 -- POLÍTICAS: Reading Sessions
@@ -468,7 +475,8 @@ FOR ALL USING (
   public.is_admin()
 ) WITH CHECK (
   auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text
+  auth.uid()::text = user_id::text OR 
+  public.is_admin()
 );
 
 -- POLÍTICAS: Book Notes
@@ -479,7 +487,8 @@ FOR ALL USING (
   public.is_admin()
 ) WITH CHECK (
   auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text
+  auth.uid()::text = user_id::text OR 
+  public.is_admin()
 );
 
 -- POLÍTICAS: Reading Goals
@@ -490,7 +499,8 @@ FOR ALL USING (
   public.is_admin()
 ) WITH CHECK (
   auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text
+  auth.uid()::text = user_id::text OR 
+  public.is_admin()
 );
 
 -- POLÍTICAS: Categories
@@ -501,7 +511,8 @@ FOR ALL USING (
   public.is_admin()
 ) WITH CHECK (
   auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text
+  auth.uid()::text = user_id::text OR 
+  public.is_admin()
 );
 
 -- POLÍTICAS: Reading Reminders
@@ -512,7 +523,8 @@ FOR ALL USING (
   public.is_admin()
 ) WITH CHECK (
   auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text
+  auth.uid()::text = user_id::text OR 
+  public.is_admin()
 );
 
 -- POLÍTICAS: System Settings
@@ -521,6 +533,25 @@ FOR SELECT USING (true);
 
 CREATE POLICY "settings_modify_policy" ON public.system_settings
 FOR ALL USING (public.is_admin()) WITH CHECK (public.is_admin());
+
+-- ============================================================================
+-- HABILITAR REALTIME PARA SINCRONIZAÇÃO INSTANTÂNEA MULTI-DISPOSITIVO
+-- ============================================================================
+DO $$
+BEGIN
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.books;
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.reading_sessions;
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.reading_goals;
+  EXCEPTION WHEN duplicate_object THEN NULL;
+  END;
+END $$;
 
 -- ============================================================================
 -- PERMISSÕES DE ACESSO

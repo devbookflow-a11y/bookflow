@@ -128,7 +128,7 @@ export const NotificationDropdown: React.FC = () => {
       {/* Backdrop transparente para mobile */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 bg-slate-950/20 backdrop-blur-[2px] sm:hidden"
+          className="fixed inset-0 z-30 bg-black/20 sm:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
