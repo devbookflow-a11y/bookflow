@@ -1,0 +1,128 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  color-scheme: light dark;
+}
+
+/* ==========================================================================
+   BookFlow - Sistema Global de Cores do Perfil (Accent Theme Engine)
+   Aplica a cor escolhida pelo leitor de forma consistente em todo o SaaS.
+   ========================================================================== */
+
+:root,
+html[data-accent="amber"],
+body[data-accent="amber"] {
+  --color-amber-50: #fffbeb;
+  --color-amber-100: #fef3c7;
+  --color-amber-200: #fde68a;
+  --color-amber-300: #fcd34d;
+  --color-amber-400: #fbbf24;
+  --color-amber-500: #f59e0b;
+  --color-amber-600: #d97706;
+  --color-amber-700: #b45309;
+  --color-amber-800: #92400e;
+  --color-amber-900: #78350f;
+  --color-amber-950: #451a03;
+}
+
+html[data-accent="indigo"],
+body[data-accent="indigo"] {
+  --color-amber-50: #eef2ff;
+  --color-amber-100: #e0e7ff;
+  --color-amber-200: #c7d2fe;
+  --color-amber-300: #a5b4fc;
+  --color-amber-400: #818cf8;
+  --color-amber-500: #6366f1;
+  --color-amber-600: #4f46e5;
+  --color-amber-700: #4338ca;
+  --color-amber-800: #3730a3;
+  --color-amber-900: #312e81;
+  --color-amber-950: #1e1b4b;
+}
+
+html[data-accent="emerald"],
+body[data-accent="emerald"] {
+  --color-amber-50: #ecfdf5;
+  --color-amber-100: #d1fae5;
+  --color-amber-200: #a7f3d0;
+  --color-amber-300: #6ee7b7;
+  --color-amber-400: #34d399;
+  --color-amber-500: #10b981;
+  --color-amber-600: #059669;
+  --color-amber-700: #047857;
+  --color-amber-800: #065f46;
+  --color-amber-900: #064e3b;
+  --color-amber-950: #022c22;
+}
+
+html[data-accent="rose"],
+body[data-accent="rose"] {
+  --color-amber-50: #fff1f2;
+  --color-amber-100: #ffe4e6;
+  --color-amber-200: #fecdd3;
+  --color-amber-300: #fda4af;
+  --color-amber-400: #fb7185;
+  --color-amber-500: #f43f5e;
+  --color-amber-600: #e11d48;
+  --color-amber-700: #be123c;
+  --color-amber-800: #9f1239;
+  --color-amber-900: #881337;
+  --color-amber-950: #4c0519;
+}
+
+html[data-accent="purple"],
+body[data-accent="purple"] {
+  --color-amber-50: #faf5ff;
+  --color-amber-100: #f3e8ff;
+  --color-amber-200: #e9d5ff;
+  --color-amber-300: #d8b4fe;
+  --color-amber-400: #c084fc;
+  --color-amber-500: #a855f7;
+  --color-amber-600: #9333ea;
+  --color-amber-700: #7e22ce;
+  --color-amber-800: #6b21a8;
+  --color-amber-900: #581c87;
+  --color-amber-950: #3b0764;
+}
+
+html[data-accent="sky"],
+body[data-accent="sky"] {
+  --color-amber-50: #f0f9ff;
+  --color-amber-100: #e0f2fe;
+  --color-amber-200: #bae6fd;
+  --color-amber-300: #7dd3fc;
+  --color-amber-400: #38bdf8;
+  --color-amber-500: #0ea5e9;
+  --color-amber-600: #0284c7;
+  --color-amber-700: #0369a1;
+  --color-amber-800: #075985;
+  --color-amber-900: #0c4a6e;
+  --color-amber-950: #082f49;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+}
+
+/* Custom subtle scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.5);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.7);
+}
