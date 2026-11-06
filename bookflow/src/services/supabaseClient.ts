@@ -451,44 +451,44 @@ DROP POLICY IF EXISTS "settings_modify_policy" ON public.system_settings;
 
 -- POLÍTICAS: Profiles (Isolamento total com acesso ao próprio perfil)
 CREATE POLICY "profiles_select_policy" ON public.profiles
-FOR SELECT USING (auth.uid() = id OR public.is_admin());
+FOR SELECT USING (auth.uid() = id OR auth.uid()::text = id::text OR public.is_admin());
 
 CREATE POLICY "profiles_insert_policy" ON public.profiles
-FOR INSERT WITH CHECK (auth.uid() = id OR public.is_admin());
+FOR INSERT WITH CHECK (auth.uid() = id OR auth.uid()::text = id::text OR public.is_admin());
 
 CREATE POLICY "profiles_update_policy" ON public.profiles
-FOR UPDATE USING (auth.uid() = id OR public.is_admin())
-WITH CHECK (auth.uid() = id OR public.is_admin());
+FOR UPDATE USING (auth.uid() = id OR auth.uid()::text = id::text OR public.is_admin())
+WITH CHECK (auth.uid() = id OR auth.uid()::text = id::text OR public.is_admin());
 
 -- POLÍTICAS: Books (Operações de usuário 100% isoladas por auth.uid())
 CREATE POLICY "books_user_policy" ON public.books
-FOR ALL USING (auth.uid() = user_id OR public.is_admin())
-WITH CHECK (auth.uid() = user_id OR public.is_admin());
+FOR ALL USING (auth.uid() = user_id OR auth.uid()::text = user_id::text OR public.is_admin())
+WITH CHECK (auth.uid() = user_id OR auth.uid()::text = user_id::text OR public.is_admin());
 
 -- POLÍTICAS: Reading Sessions
 CREATE POLICY "sessions_user_policy" ON public.reading_sessions
-FOR ALL USING (auth.uid() = user_id OR public.is_admin())
-WITH CHECK (auth.uid() = user_id OR public.is_admin());
+FOR ALL USING (auth.uid() = user_id OR auth.uid()::text = user_id::text OR public.is_admin())
+WITH CHECK (auth.uid() = user_id OR auth.uid()::text = user_id::text OR public.is_admin());
 
 -- POLÍTICAS: Book Notes
 CREATE POLICY "notes_user_policy" ON public.book_notes
-FOR ALL USING (auth.uid() = user_id OR public.is_admin())
-WITH CHECK (auth.uid() = user_id OR public.is_admin());
+FOR ALL USING (auth.uid() = user_id OR auth.uid()::text = user_id::text OR public.is_admin())
+WITH CHECK (auth.uid() = user_id OR auth.uid()::text = user_id::text OR public.is_admin());
 
 -- POLÍTICAS: Reading Goals
 CREATE POLICY "goals_user_policy" ON public.reading_goals
-FOR ALL USING (auth.uid() = user_id OR public.is_admin())
-WITH CHECK (auth.uid() = user_id OR public.is_admin());
+FOR ALL USING (auth.uid() = user_id OR auth.uid()::text = user_id::text OR public.is_admin())
+WITH CHECK (auth.uid() = user_id OR auth.uid()::text = user_id::text OR public.is_admin());
 
 -- POLÍTICAS: Categories
 CREATE POLICY "categories_user_policy" ON public.categories
-FOR ALL USING (auth.uid() = user_id OR public.is_admin())
-WITH CHECK (auth.uid() = user_id OR public.is_admin());
+FOR ALL USING (auth.uid() = user_id OR auth.uid()::text = user_id::text OR public.is_admin())
+WITH CHECK (auth.uid() = user_id OR auth.uid()::text = user_id::text OR public.is_admin());
 
 -- POLÍTICAS: Reading Reminders
 CREATE POLICY "reminders_user_policy" ON public.reading_reminders
-FOR ALL USING (auth.uid() = user_id OR public.is_admin())
-WITH CHECK (auth.uid() = user_id OR public.is_admin());
+FOR ALL USING (auth.uid() = user_id OR auth.uid()::text = user_id::text OR public.is_admin())
+WITH CHECK (auth.uid() = user_id OR auth.uid()::text = user_id::text OR public.is_admin());
 
 -- POLÍTICAS: System Settings (Leitura pública para banner/manutenção; Escrita restrita a admin)
 CREATE POLICY "settings_select_policy" ON public.system_settings

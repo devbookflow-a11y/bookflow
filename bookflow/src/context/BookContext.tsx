@@ -451,49 +451,25 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
         supabaseDataService.fetchUserReminder(user.id),
       ]);
 
-      const localBooks = repoGetBooks();
+      const userStorageKey = `bookflow_user_books_${user.id}`;
       let finalBooks: Book[] = [];
 
       if (remoteBooks && remoteBooks.length > 0) {
-        const remoteIds = new Set(remoteBooks.map((b) => b.id));
-        // Apenas livros locais criados pelo usuário que não sejam os de demonstração
-        const localOnly = localBooks.filter((b) => !remoteIds.has(b.id) && !DEMO_BOOK_IDS.has(b.id));
-
-        // Para livros existentes em ambos, mantém o que possui maior updatedAt ou mais sessões/notas
-        const mergedRemote = remoteBooks.map((rBook) => {
-          const lBook = localBooks.find((b) => b.id === rBook.id);
-          if (!lBook) return rBook;
-          if ((lBook.updatedAt || 0) > (rBook.updatedAt || 0)) {
-            return lBook;
-          }
-          if ((lBook.sessions?.length || 0) > (rBook.sessions?.length || 0)) {
-            return lBook;
-          }
-          return rBook;
-        });
-
-        finalBooks = [...mergedRemote, ...localOnly];
+        // A biblioteca remota do Supabase é a autoridade máxima e sincronizada entre todos os dispositivos
+        finalBooks = remoteBooks;
         setBooks(finalBooks);
         repoSaveBooks(finalBooks);
-
-        // Se havia livros locais novos ou pendentes, salva-os no Supabase com todas as sessões e anotações
-        if (localOnly.length > 0) {
-          await supabaseDataService.bulkUpsertBooks(user.id, localOnly);
-        }
+        try {
+          localStorage.setItem(userStorageKey, JSON.stringify(finalBooks));
+        } catch {}
       } else {
-        // Banco remoto ainda sem livros: verifica se existem livros locais criados pelo usuário (não-demo)
-        const userCreatedLocal = localBooks.filter((b) => !DEMO_BOOK_IDS.has(b.id));
-        if (userCreatedLocal.length > 0) {
-          finalBooks = userCreatedLocal;
-          setBooks(finalBooks);
-          repoSaveBooks(finalBooks);
-          await supabaseDataService.bulkUpsertBooks(user.id, finalBooks);
-        } else {
-          // Usuário recém-criado: inicia com estante limpa vinculada à sua conta
-          finalBooks = [];
-          setBooks([]);
-          repoSaveBooks([]);
-        }
+        // Usuário novo ou com biblioteca remota vazia: inicializa estante limpa e isolada
+        finalBooks = [];
+        setBooks([]);
+        repoSaveBooks([]);
+        try {
+          localStorage.removeItem(userStorageKey);
+        } catch {}
       }
 
       if (remoteGoal) {
@@ -906,7 +882,7 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (user && !user.isDemo && updatedTargets.length > 0) {
           supabaseDataService.bulkUpsertBooks(user.id, updatedTargets).catch((err) => {
-            console.warn('[BookContext] Erro ao sincronizar lote com Supabase:', err);
+            console.error('[BookContext:bulkUpdateStatus] ❌ Erro ao atualizar lote de livros no Supabase:', err);
           });
         }
 
@@ -924,7 +900,7 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 
   /**
-   * Exclui múltiplos livros em lote
+   * Exclui múltiplos livros em lote (Batch Delete)
    */
   const deleteBooksBulk = useCallback(
     (ids: string[]) => {
@@ -934,8 +910,8 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ids.forEach((id) => repoDeleteBook(id));
 
       if (user && !user.isDemo) {
-        ids.forEach((id) => {
-          supabaseDataService.deleteBook(user.id, id).catch(console.warn);
+        supabaseDataService.deleteBooksBulk(user.id, ids).catch((err) => {
+          console.error('[BookContext:deleteBooksBulk] ❌ Erro ao excluir lote de livros no Supabase:', err);
         });
       }
 
@@ -1125,6 +1101,10 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
           categories: result.categories,
           reminder: result.reminders,
         });
+        if (result.books && result.books.length > 0) {
+          setBooks([...result.books]);
+          repoSaveBooks(result.books);
+        }
       }
 
       return true;
