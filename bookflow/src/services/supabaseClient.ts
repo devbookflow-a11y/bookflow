@@ -203,10 +203,10 @@ export async function testSupabaseConnection(
 }
 
 /**
- * Script SQL completo com tabelas e políticas RLS para o usuário criar no Supabase SQL Editor
+ * Script SQL completo com tabelas, migrações e políticas RLS para o usuário criar no Supabase SQL Editor
  */
 export const SUPABASE_SCHEMA_SQL = `-- ============================================================================
--- SCRIPT DEFINITIVO DE CORREÇÃO E ATUALIZAÇÃO DO BANCO BOOKFLOW NO SUPABASE
+-- SCRIPT DEFINITIVO DE CORREÇÃO, MIGRAÇÃO E ATUALIZAÇÃO DO BANCO BOOKFLOW
 -- Execute este script no SQL Editor do Supabase (SQL Editor -> New Query -> Run)
 -- ============================================================================
 
@@ -229,7 +229,7 @@ ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'active
 -- 2. Tabela de Livros (Books)
 CREATE TABLE IF NOT EXISTS public.books (
   id TEXT PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE DEFAULT auth.uid(),
   title TEXT NOT NULL,
   author TEXT NOT NULL,
   total_pages INTEGER NOT NULL DEFAULT 0,
@@ -247,7 +247,7 @@ CREATE TABLE IF NOT EXISTS public.books (
   updated_at BIGINT NOT NULL DEFAULT ROUND(EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT
 );
 
--- Garante todas as colunas necessárias na tabela books
+ALTER TABLE public.books ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE DEFAULT auth.uid();
 ALTER TABLE public.books ADD COLUMN IF NOT EXISTS category TEXT DEFAULT 'Geral';
 ALTER TABLE public.books ADD COLUMN IF NOT EXISTS tags TEXT[] DEFAULT '{}';
 ALTER TABLE public.books ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'none';
@@ -263,7 +263,7 @@ ALTER TABLE public.books DROP CONSTRAINT IF EXISTS books_status_check;
 CREATE TABLE IF NOT EXISTS public.reading_sessions (
   id TEXT PRIMARY KEY,
   book_id TEXT NOT NULL REFERENCES public.books(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE DEFAULT auth.uid(),
   date TEXT NOT NULL,
   pages_read INTEGER NOT NULL DEFAULT 0,
   ending_page INTEGER,
@@ -271,23 +271,38 @@ CREATE TABLE IF NOT EXISTS public.reading_sessions (
   timestamp BIGINT NOT NULL DEFAULT ROUND(EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT
 );
 
+ALTER TABLE public.reading_sessions ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE DEFAULT auth.uid();
 ALTER TABLE public.reading_sessions ADD COLUMN IF NOT EXISTS ending_page INTEGER;
 ALTER TABLE public.reading_sessions ADD COLUMN IF NOT EXISTS notes TEXT;
+
+-- Migração de segurança: Preenche user_id em sessões antigas que porventura estavam sem user_id
+UPDATE public.reading_sessions s
+SET user_id = b.user_id
+FROM public.books b
+WHERE s.book_id = b.id AND (s.user_id IS NULL);
 
 -- 4. Tabela de Notas e Citações (Book Notes)
 CREATE TABLE IF NOT EXISTS public.book_notes (
   id TEXT PRIMARY KEY,
   book_id TEXT NOT NULL REFERENCES public.books(id) ON DELETE CASCADE,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE DEFAULT auth.uid(),
   type TEXT NOT NULL DEFAULT 'note',
   page_or_chapter TEXT,
   content TEXT NOT NULL,
   created_at BIGINT NOT NULL DEFAULT ROUND(EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT
 );
 
+ALTER TABLE public.book_notes ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE DEFAULT auth.uid();
+
+-- Migração de segurança: Preenche user_id em notas antigas que porventura estavam sem user_id
+UPDATE public.book_notes n
+SET user_id = b.user_id
+FROM public.books b
+WHERE n.book_id = b.id AND (n.user_id IS NULL);
+
 -- 5. Tabela de Metas de Leitura (Reading Goals)
 CREATE TABLE IF NOT EXISTS public.reading_goals (
-  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE DEFAULT auth.uid(),
   year INTEGER NOT NULL,
   target_books INTEGER NOT NULL DEFAULT 12,
   target_pages INTEGER DEFAULT 4000,
@@ -301,15 +316,17 @@ ALTER TABLE public.reading_goals ADD COLUMN IF NOT EXISTS daily_page_target INTE
 -- 6. Tabela de Categorias Customizadas
 CREATE TABLE IF NOT EXISTS public.categories (
   id TEXT PRIMARY KEY,
-  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE DEFAULT auth.uid(),
   name TEXT NOT NULL,
   created_at BIGINT NOT NULL DEFAULT ROUND(EXTRACT(EPOCH FROM NOW()) * 1000)::BIGINT,
   UNIQUE(user_id, name)
 );
 
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE DEFAULT auth.uid();
+
 -- 7. Tabela de Lembretes Diários
 CREATE TABLE IF NOT EXISTS public.reading_reminders (
-  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE DEFAULT auth.uid(),
   enabled BOOLEAN NOT NULL DEFAULT true,
   time TEXT NOT NULL DEFAULT '20:00',
   frequency TEXT NOT NULL DEFAULT 'daily',
@@ -328,29 +345,26 @@ CREATE TABLE IF NOT EXISTS public.system_settings (
 );
 
 -- ============================================================================
--- FUNÇÃO AUXILIAR NÃO-RECURSIVA DE ADMINISTRAÇÃO
+-- FUNÇÃO AUXILIAR NÃO-RECURSIVA DE ADMINISTRAÇÃO (ZERO RECURSÃO)
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION public.is_admin()
 RETURNS BOOLEAN AS $$
 BEGIN
-  -- 1. Checa o e-mail master diretamente do JWT (sem chamar profiles -> ZERO recursão)
+  -- 1. Checa o e-mail master diretamente do JWT
   IF LOWER(COALESCE(auth.jwt()->>'email', '')) = 'diegomarques.mat@gmail.com' THEN
     RETURN true;
   END IF;
 
-  -- 2. Checa user_metadata do JWT
-  IF COALESCE((auth.jwt()->'user_metadata'->>'is_admin')::boolean, false) = true THEN
+  -- 2. Checa metadados do token JWT (sem consultar profiles para evitar recursão infinita de RLS)
+  IF COALESCE((auth.jwt()->'user_metadata'->>'is_admin')::boolean, false) = true OR
+     COALESCE((auth.jwt()->'app_metadata'->>'is_admin')::boolean, false) = true THEN
     RETURN true;
   END IF;
 
-  -- 3. Checa o registro na tabela profiles
-  RETURN EXISTS (
-    SELECT 1 FROM public.profiles 
-    WHERE id = auth.uid() AND is_admin = true
-  );
+  RETURN false;
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+$$ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public;
 
 -- Trigger automático para criar e atualizar o perfil no cadastro
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -400,134 +414,83 @@ ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.reading_reminders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.system_settings ENABLE ROW LEVEL SECURITY;
 
--- Limpeza de políticas anteriores para evitar duplicidade
-DROP POLICY IF EXISTS "Users can view own profile or admins view all" ON public.profiles;
-DROP POLICY IF EXISTS "Users can update own profile or admins update all" ON public.profiles;
-DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
+-- Limpeza de políticas anteriores para garantir execução limpa
 DROP POLICY IF EXISTS "profiles_select_policy" ON public.profiles;
 DROP POLICY IF EXISTS "profiles_insert_policy" ON public.profiles;
 DROP POLICY IF EXISTS "profiles_update_policy" ON public.profiles;
+DROP POLICY IF EXISTS "Users can view own profile or admins view all" ON public.profiles;
+DROP POLICY IF EXISTS "Users can update own profile or admins update all" ON public.profiles;
+DROP POLICY IF EXISTS "Users can insert own profile" ON public.profiles;
 
-DROP POLICY IF EXISTS "Users can manage their own books or admins view all" ON public.books;
 DROP POLICY IF EXISTS "books_user_policy" ON public.books;
+DROP POLICY IF EXISTS "books_admin_policy" ON public.books;
+DROP POLICY IF EXISTS "Users can manage their own books or admins view all" ON public.books;
 
-DROP POLICY IF EXISTS "Users can manage their own reading sessions" ON public.reading_sessions;
 DROP POLICY IF EXISTS "sessions_user_policy" ON public.reading_sessions;
+DROP POLICY IF EXISTS "sessions_admin_policy" ON public.reading_sessions;
+DROP POLICY IF EXISTS "Users can manage their own reading sessions" ON public.reading_sessions;
 
-DROP POLICY IF EXISTS "Users can manage their own book notes" ON public.book_notes;
 DROP POLICY IF EXISTS "notes_user_policy" ON public.book_notes;
+DROP POLICY IF EXISTS "notes_admin_policy" ON public.book_notes;
+DROP POLICY IF EXISTS "Users can manage their own book notes" ON public.book_notes;
 
-DROP POLICY IF EXISTS "Users can manage their own goals" ON public.reading_goals;
 DROP POLICY IF EXISTS "goals_user_policy" ON public.reading_goals;
+DROP POLICY IF EXISTS "goals_admin_policy" ON public.reading_goals;
+DROP POLICY IF EXISTS "Users can manage their own goals" ON public.reading_goals;
 
-DROP POLICY IF EXISTS "Users can manage their own categories" ON public.categories;
 DROP POLICY IF EXISTS "categories_user_policy" ON public.categories;
+DROP POLICY IF EXISTS "categories_admin_policy" ON public.categories;
+DROP POLICY IF EXISTS "Users can manage their own categories" ON public.categories;
 
-DROP POLICY IF EXISTS "Users can manage their own reminders" ON public.reading_reminders;
 DROP POLICY IF EXISTS "reminders_user_policy" ON public.reading_reminders;
+DROP POLICY IF EXISTS "reminders_admin_policy" ON public.reading_reminders;
+DROP POLICY IF EXISTS "Users can manage their own reminders" ON public.reading_reminders;
 
 DROP POLICY IF EXISTS "settings_select_policy" ON public.system_settings;
 DROP POLICY IF EXISTS "settings_modify_policy" ON public.system_settings;
 
--- POLÍTICAS: Profiles
+-- POLÍTICAS: Profiles (Isolamento total com acesso ao próprio perfil)
 CREATE POLICY "profiles_select_policy" ON public.profiles
-FOR SELECT USING (
-  auth.uid() = id OR 
-  auth.uid()::text = id::text OR 
-  public.is_admin()
-);
+FOR SELECT USING (auth.uid() = id OR public.is_admin());
 
 CREATE POLICY "profiles_insert_policy" ON public.profiles
-FOR INSERT WITH CHECK (
-  auth.uid() = id OR 
-  auth.uid()::text = id::text OR 
-  public.is_admin()
-);
+FOR INSERT WITH CHECK (auth.uid() = id OR public.is_admin());
 
 CREATE POLICY "profiles_update_policy" ON public.profiles
-FOR UPDATE USING (
-  auth.uid() = id OR 
-  auth.uid()::text = id::text OR 
-  public.is_admin()
-) WITH CHECK (
-  auth.uid() = id OR 
-  auth.uid()::text = id::text OR 
-  public.is_admin()
-);
+FOR UPDATE USING (auth.uid() = id OR public.is_admin())
+WITH CHECK (auth.uid() = id OR public.is_admin());
 
--- POLÍTICAS: Books (Garante SELECT, INSERT, UPDATE, DELETE e UPSERT seguro)
+-- POLÍTICAS: Books (Operações de usuário 100% isoladas por auth.uid())
 CREATE POLICY "books_user_policy" ON public.books
-FOR ALL USING (
-  auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text OR 
-  public.is_admin()
-) WITH CHECK (
-  auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text OR 
-  public.is_admin()
-);
+FOR ALL USING (auth.uid() = user_id OR public.is_admin())
+WITH CHECK (auth.uid() = user_id OR public.is_admin());
 
 -- POLÍTICAS: Reading Sessions
 CREATE POLICY "sessions_user_policy" ON public.reading_sessions
-FOR ALL USING (
-  auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text OR 
-  public.is_admin()
-) WITH CHECK (
-  auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text OR 
-  public.is_admin()
-);
+FOR ALL USING (auth.uid() = user_id OR public.is_admin())
+WITH CHECK (auth.uid() = user_id OR public.is_admin());
 
 -- POLÍTICAS: Book Notes
 CREATE POLICY "notes_user_policy" ON public.book_notes
-FOR ALL USING (
-  auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text OR 
-  public.is_admin()
-) WITH CHECK (
-  auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text OR 
-  public.is_admin()
-);
+FOR ALL USING (auth.uid() = user_id OR public.is_admin())
+WITH CHECK (auth.uid() = user_id OR public.is_admin());
 
 -- POLÍTICAS: Reading Goals
 CREATE POLICY "goals_user_policy" ON public.reading_goals
-FOR ALL USING (
-  auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text OR 
-  public.is_admin()
-) WITH CHECK (
-  auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text OR 
-  public.is_admin()
-);
+FOR ALL USING (auth.uid() = user_id OR public.is_admin())
+WITH CHECK (auth.uid() = user_id OR public.is_admin());
 
 -- POLÍTICAS: Categories
 CREATE POLICY "categories_user_policy" ON public.categories
-FOR ALL USING (
-  auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text OR 
-  public.is_admin()
-) WITH CHECK (
-  auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text OR 
-  public.is_admin()
-);
+FOR ALL USING (auth.uid() = user_id OR public.is_admin())
+WITH CHECK (auth.uid() = user_id OR public.is_admin());
 
 -- POLÍTICAS: Reading Reminders
 CREATE POLICY "reminders_user_policy" ON public.reading_reminders
-FOR ALL USING (
-  auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text OR 
-  public.is_admin()
-) WITH CHECK (
-  auth.uid() = user_id OR 
-  auth.uid()::text = user_id::text OR 
-  public.is_admin()
-);
+FOR ALL USING (auth.uid() = user_id OR public.is_admin())
+WITH CHECK (auth.uid() = user_id OR public.is_admin());
 
--- POLÍTICAS: System Settings
+-- POLÍTICAS: System Settings (Leitura pública para banner/manutenção; Escrita restrita a admin)
 CREATE POLICY "settings_select_policy" ON public.system_settings
 FOR SELECT USING (true);
 
@@ -567,3 +530,4 @@ UPDATE public.profiles
 SET is_admin = true 
 WHERE LOWER(email) = 'diegomarques.mat@gmail.com';
 `;
+;

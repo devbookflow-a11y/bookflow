@@ -73,28 +73,60 @@ export const supabaseDataService = {
 
     const bookIds = booksData.map((b) => b.id);
 
-    // 2. Buscar todas as sessões de leitura do usuário diretamente por user_id (evita limites de URL e garante histórico completo)
-    const { data: sessionsData, error: sessionsError } = await client
+    // 2. Buscar todas as sessões de leitura do usuário diretamente por user_id
+    let sessionsData: any[] = [];
+    const { data: sData, error: sessionsError } = await client
       .from('reading_sessions')
       .select('*')
       .eq('user_id', userId)
-      .limit(5000)
+      .limit(10000)
       .order('timestamp', { ascending: false });
 
     if (sessionsError) {
-      console.warn('[SupabaseData] Aviso ao buscar sessões:', sessionsError);
+      console.warn('[SupabaseData] Aviso ao buscar sessões por user_id:', sessionsError);
+    }
+
+    if (sData && sData.length > 0) {
+      sessionsData = sData;
+    } else if (bookIds.length > 0) {
+      // Fallback: se user_id não estava preenchido nas sessões legadas, busca pelos book_ids do usuário
+      const { data: fallbackSessions } = await client
+        .from('reading_sessions')
+        .select('*')
+        .in('book_id', bookIds)
+        .limit(10000)
+        .order('timestamp', { ascending: false });
+      if (fallbackSessions && fallbackSessions.length > 0) {
+        sessionsData = fallbackSessions;
+      }
     }
 
     // 3. Buscar todas as notas associadas ao usuário diretamente por user_id
-    const { data: notesData, error: notesError } = await client
+    let notesData: any[] = [];
+    const { data: nData, error: notesError } = await client
       .from('book_notes')
       .select('*')
       .eq('user_id', userId)
-      .limit(5000)
+      .limit(10000)
       .order('created_at', { ascending: false });
 
     if (notesError) {
-      console.warn('[SupabaseData] Aviso ao buscar notas:', notesError);
+      console.warn('[SupabaseData] Aviso ao buscar notas por user_id:', notesError);
+    }
+
+    if (nData && nData.length > 0) {
+      notesData = nData;
+    } else if (bookIds.length > 0) {
+      // Fallback: se user_id não estava preenchido nas notas legadas, busca pelos book_ids do usuário
+      const { data: fallbackNotes } = await client
+        .from('book_notes')
+        .select('*')
+        .in('book_id', bookIds)
+        .limit(10000)
+        .order('created_at', { ascending: false });
+      if (fallbackNotes && fallbackNotes.length > 0) {
+        notesData = fallbackNotes;
+      }
     }
 
     // Mapear sessões e notas para os respectivos livros
@@ -105,10 +137,10 @@ export const supabaseDataService = {
         id: row.id,
         bookId: row.book_id,
         date: row.date,
-        pagesRead: row.pages_read,
+        pagesRead: Number(row.pages_read) || 0,
         endingPage: row.ending_page !== null && row.ending_page !== undefined ? Number(row.ending_page) : 0,
         notes: row.notes ?? undefined,
-        timestamp: Number(row.timestamp),
+        timestamp: Number(row.timestamp) || Date.now(),
       });
     });
 
@@ -121,7 +153,7 @@ export const supabaseDataService = {
         type: (row.type as BookNote['type']) || 'note',
         pageOrChapter: row.page_or_chapter ?? undefined,
         content: row.content,
-        createdAt: Number(row.created_at),
+        createdAt: Number(row.created_at) || Date.now(),
       });
     });
 
@@ -129,26 +161,26 @@ export const supabaseDataService = {
       id: b.id,
       title: b.title,
       author: b.author,
-      totalPages: b.total_pages,
-      currentPage: b.current_page,
+      totalPages: Number(b.total_pages) || 0,
+      currentPage: Number(b.current_page) || 0,
       category: b.category as Book['category'],
       tags: b.tags || [],
       status: b.status as Book['status'],
       startDate: b.start_date ?? undefined,
       targetDeadline: b.target_deadline ?? undefined,
       completedDate: b.completed_date ?? undefined,
-      rating: b.rating ?? undefined,
+      rating: b.rating !== null && b.rating !== undefined ? Number(b.rating) : undefined,
       review: b.review ?? undefined,
       accentColor: b.accent_color ?? undefined,
       sessions: sessionsByBook[b.id] || [],
       notes: notesByBook[b.id] || [],
-      createdAt: Number(b.created_at),
-      updatedAt: Number(b.updated_at),
+      createdAt: Number(b.created_at) || Date.now(),
+      updatedAt: Number(b.updated_at) || Date.now(),
     }));
   },
 
   /**
-   * Salva ou atualiza um livro no Supabase vinculado ao usuário
+   * Salva ou atualiza um livro no Supabase vinculado ao usuário, incluindo sessões e notas
    */
   async upsertBook(userId: string, book: Book): Promise<void> {
     const client = getSupabaseClient();
@@ -157,27 +189,64 @@ export const supabaseDataService = {
     const row: DbBookRow = {
       id: book.id,
       user_id: userId,
-      title: book.title,
-      author: book.author,
-      total_pages: book.totalPages,
-      current_page: book.currentPage,
-      category: book.category,
+      title: book.title || 'Sem título',
+      author: book.author || 'Autor desconhecido',
+      total_pages: Number(book.totalPages) || 0,
+      current_page: Number(book.currentPage) || 0,
+      category: book.category || 'Geral',
       tags: book.tags || [],
-      status: book.status,
+      status: book.status || 'none',
       start_date: book.startDate || null,
       target_deadline: book.targetDeadline || null,
       completed_date: book.completedDate || null,
-      rating: book.rating || null,
+      rating: book.rating !== null && book.rating !== undefined ? Number(book.rating) : null,
       review: book.review || null,
       accent_color: book.accentColor || null,
-      created_at: book.createdAt || Date.now(),
-      updated_at: Date.now(),
+      created_at: Number(book.createdAt) || Date.now(),
+      updated_at: Number(book.updatedAt) || Date.now(),
     };
 
     const { error } = await client.from('books').upsert(row, { onConflict: 'id' });
     if (error) {
       console.error('[SupabaseData] Erro ao salvar livro:', error);
       throw error;
+    }
+
+    // Se o livro possui sessões atreladas, persiste-as com user_id
+    if (book.sessions && book.sessions.length > 0) {
+      const sessionRows = book.sessions.map((s) => ({
+        id: String(s.id || `session-${book.id}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`),
+        book_id: book.id,
+        user_id: userId,
+        date: s.date || new Date().toISOString().split('T')[0],
+        pages_read: Math.max(0, Number(s.pagesRead) || 0),
+        ending_page: s.endingPage !== undefined && s.endingPage !== null ? Number(s.endingPage) : null,
+        notes: s.notes || null,
+        timestamp: Number(s.timestamp) || Date.now(),
+      }));
+      try {
+        await client.from('reading_sessions').upsert(sessionRows, { onConflict: 'id' });
+      } catch (err: any) {
+        console.warn('[SupabaseData] Aviso ao salvar sessões atreladas ao livro:', err);
+      }
+    }
+
+    // Se o livro possui notas atreladas, persiste-as com user_id
+    if (book.notes && book.notes.length > 0) {
+      const noteRows = book.notes.map((n) => ({
+        id: String(n.id || `note-${book.id}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`),
+        book_id: book.id,
+        user_id: userId,
+        type: ['quote', 'reflection', 'note', 'insight'].includes(n.type) ? n.type : 'note',
+        page_or_chapter: n.pageOrChapter || null,
+        content: String(n.content || ''),
+        created_at: Number(n.createdAt) || Date.now(),
+      }));
+      try {
+        await client.from('book_notes').upsert(noteRows, { onConflict: 'id' });
+      } catch (err: any) {
+        console.warn('[SupabaseData] Aviso ao salvar notas atreladas ao livro:', err);
+      }
     }
   },
 

@@ -958,15 +958,7 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
   ) => {
     const sessionDate = date || getTodayString();
     setBooks((prev) => {
-      let createdSession: {
-        id: string;
-        bookId: string;
-        date: string;
-        pagesRead: number;
-        endingPage?: number;
-        notes?: string;
-        timestamp: number;
-      } | null = null;
+      let createdSession: ReadingSession | null = null;
 
       const updatedList = prev.map((b) => {
         if (b.id !== bookId) return b;
@@ -1007,10 +999,13 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (user && !user.isDemo) {
         const target = updatedList.find((b) => b.id === bookId);
         if (target) {
-          supabaseDataService.saveBook(user.id, target).catch(console.error);
-        }
-        if (createdSession) {
-          supabaseDataService.saveReadingSession(user.id, createdSession).catch(console.error);
+          supabaseDataService.saveBook(user.id, target)
+            .then(() => {
+              if (createdSession) {
+                return supabaseDataService.saveReadingSession(user.id, createdSession);
+              }
+            })
+            .catch((err) => console.error('[BookContext] Erro ao sincronizar sessão com Supabase:', err));
         }
       }
 
@@ -1035,8 +1030,9 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const book = updated.find((b) => b.id === bookId);
         const session = book?.sessions?.find((s) => s.id === sessionId);
         if (book && session) {
-          supabaseDataService.saveReadingSession(user.id, session).catch(console.error);
-          supabaseDataService.saveBook(user.id, book).catch(console.error);
+          supabaseDataService.saveBook(user.id, book)
+            .then(() => supabaseDataService.saveReadingSession(user.id, session))
+            .catch((err) => console.error('[BookContext] Erro ao atualizar sessão:', err));
         }
       }
     },
@@ -1054,10 +1050,13 @@ export const BookProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (user && !user.isDemo) {
         const book = updated.find((b) => b.id === bookId);
-        supabaseDataService.deleteReadingSession(user.id, sessionId).catch(console.error);
-        if (book) {
-          supabaseDataService.saveBook(user.id, book).catch(console.error);
-        }
+        supabaseDataService.deleteReadingSession(user.id, sessionId)
+          .then(() => {
+            if (book) {
+              return supabaseDataService.saveBook(user.id, book);
+            }
+          })
+          .catch((err) => console.error('[BookContext] Erro ao excluir sessão:', err));
       }
     },
     [user]

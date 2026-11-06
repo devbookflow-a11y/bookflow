@@ -491,60 +491,70 @@ export const DashboardView: React.FC = () => {
         </div>
 
         {/* Atividade de Leitura dos Últimos 14 Dias */}
-        <div className="p-5 sm:p-6 rounded-2xl md:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col justify-between">
+        <div className="p-4 sm:p-6 rounded-2xl md:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col justify-between min-w-0 overflow-hidden">
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-sky-500" />
-                  Atividade Recente (14 Dias)
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4 min-w-0">
+              <div className="min-w-0">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 truncate">
+                  <Calendar className="w-4 h-4 text-sky-500 shrink-0" />
+                  <span>Atividade Recente (14 Dias)</span>
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
                   Páginas lidas e registradas por dia
                 </p>
               </div>
-              {hoveredBar && (
-                <div className="text-xs font-bold text-amber-600 dark:text-amber-400 tabular-nums font-mono animate-fade-in">
-                  {hoveredBar.label}: {hoveredBar.pages} págs
-                </div>
-              )}
+              <div className="flex items-center gap-2 shrink-0">
+                {hoveredBar ? (
+                  <div className="text-[11px] sm:text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 px-2.5 py-0.5 rounded-full tabular-nums font-mono animate-fade-in shadow-2xs">
+                    {hoveredBar.label}: {hoveredBar.pages} {hoveredBar.pages === 1 ? 'pág' : 'págs'}
+                  </div>
+                ) : (
+                  <div className="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-full font-mono">
+                    {stats.dailyActivity.reduce((acc, d) => acc + d.pages, 0)} págs totais
+                  </div>
+                )}
+              </div>
             </div>
 
-            {/* SVG Native Chart */}
-            <div className="h-52 w-full pt-4">
-              <div className="h-40 flex items-end justify-between gap-1.5 sm:gap-2 px-1">
+            {/* Interactive Responsive Chart */}
+            <div className="h-44 sm:h-52 w-full pt-2 sm:pt-4 min-w-0">
+              <div className="h-32 sm:h-40 flex items-end justify-between gap-1 sm:gap-1.5 md:gap-2 px-0.5 sm:px-1 w-full min-w-0">
                 {stats.dailyActivity.map((day) => {
-                  const heightPct = Math.max(4, Math.round((day.pages / maxPagesDaily) * 100));
+                  const heightPct = Math.max(6, Math.round((day.pages / maxPagesDaily) * 100));
                   const isHovered = hoveredBar?.date === day.date;
                   const hasActivity = day.pages > 0;
+                  const dayOfMonth = day.date.split('-')[2] || day.label.split('/')[0];
 
                   return (
                     <div
                       key={day.date}
-                      className="flex-1 flex flex-col items-center h-full justify-end group cursor-pointer relative"
+                      className="flex-1 min-w-0 flex flex-col items-center h-full justify-end group cursor-pointer relative"
                       onMouseEnter={() => setHoveredBar(day)}
                       onMouseLeave={() => setHoveredBar(null)}
+                      onClick={() => setHoveredBar(hoveredBar?.date === day.date ? null : day)}
+                      title={`${day.label}: ${day.pages} páginas`}
                     >
-                      {/* Tooltip on hover */}
+                      {/* Tooltip on hover / tap */}
                       {isHovered && (
-                        <div className="absolute -top-7 z-20 px-2 py-0.5 rounded bg-slate-900 text-white text-[10px] font-mono whitespace-nowrap shadow-md">
+                        <div className="absolute -top-7 z-20 px-2 py-0.5 rounded-md bg-slate-900 dark:bg-slate-800 text-white text-[10px] font-mono whitespace-nowrap shadow-md pointer-events-none border border-slate-700/50">
                           {day.pages} págs
                         </div>
                       )}
                       {/* Bar */}
                       <div
-                        className={`w-full max-w-[28px] rounded-t-md transition-all duration-300 ${
+                        className={`w-full max-w-[20px] sm:max-w-[26px] md:max-w-[28px] rounded-t-sm sm:rounded-t-md transition-all duration-300 ${
                           hasActivity
                             ? isHovered
-                              ? 'bg-amber-600 dark:bg-amber-400 shadow-sm'
+                              ? 'bg-amber-600 dark:bg-amber-400 shadow-sm ring-2 ring-amber-400/50'
                               : 'bg-amber-500 dark:bg-amber-500/90 hover:bg-amber-600'
-                            : 'bg-slate-100 dark:bg-slate-800'
+                            : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700'
                         }`}
                         style={{ height: `${heightPct}%` }}
                       />
-                      {/* X-axis date label */}
-                      <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-2 font-mono tabular-nums truncate">
-                        {day.label}
+                      {/* X-axis date label: day number only on mobile, day/month on tablet & desktop */}
+                      <span className="text-[9px] sm:text-[10px] text-slate-400 dark:text-slate-500 mt-1.5 sm:mt-2 font-mono tabular-nums leading-none text-center truncate w-full select-none">
+                        <span className="sm:hidden">{dayOfMonth}</span>
+                        <span className="hidden sm:inline">{day.label}</span>
                       </span>
                     </div>
                   );
@@ -554,16 +564,16 @@ export const DashboardView: React.FC = () => {
           </div>
 
           {/* Status de Prazos & Fila */}
-          <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-2 text-xs">
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
-              <span className="text-slate-500">Lendo agora:</span>
-              <span className="font-bold text-slate-900 dark:text-white font-mono">
+          <div className="pt-3.5 sm:pt-4 mt-3 sm:mt-4 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-2 text-xs">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-0.5 sm:gap-2">
+              <span className="text-slate-500 text-[11px] sm:text-xs">Lendo agora:</span>
+              <span className="font-bold text-slate-900 dark:text-white font-mono text-xs sm:text-sm">
                 {stats.currentlyReadingCount} livros
               </span>
             </div>
-            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between">
-              <span className="text-slate-500">Na fila de espera:</span>
-              <span className="font-bold text-slate-900 dark:text-white font-mono">
+            <div className="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-0.5 sm:gap-2">
+              <span className="text-slate-500 text-[11px] sm:text-xs">Na fila de espera:</span>
+              <span className="font-bold text-slate-900 dark:text-white font-mono text-xs sm:text-sm">
                 {stats.toReadCount} livros
               </span>
             </div>

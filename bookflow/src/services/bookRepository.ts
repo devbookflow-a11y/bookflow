@@ -544,7 +544,12 @@ export function parseAndNormalizeImport(jsonStr: string): NormalizedImportResult
 
     // Normaliza todos os livros
     const normalizedBooks: Book[] = rawBooks.map((b: any, index: number): Book => {
-      const id = String(b.id || `book-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 6)}`);
+      const rawId = String(b.id || '');
+      // Se o livro importado possui um ID que coincide com os IDs de demo padrão, remapeia para ID único persistente
+      const isDemoId = ['book-1', 'book-2', 'book-3', 'book-4', 'book-5', 'book-6', 'book-7', 'book-8', 'book-9'].includes(rawId);
+      const id = isDemoId || !rawId
+        ? `book-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 6)}`
+        : rawId;
 
       // Coleta sessões embutidas no livro
       const embeddedSessions: ReadingSession[] = Array.isArray(b.sessions || b.readingSessions)
@@ -559,7 +564,11 @@ export function parseAndNormalizeImport(jsonStr: string): NormalizedImportResult
           }))
         : [];
 
-      const allSessions = [...embeddedSessions, ...(sessionsByBook[id] || [])];
+      const externalSessions = (sessionsByBook[rawId] || sessionsByBook[id] || []).map((s) => ({
+        ...s,
+        bookId: id,
+      }));
+      const allSessions = [...embeddedSessions, ...externalSessions];
 
       // Coleta notas embutidas no livro
       const embeddedNotes: BookNote[] = Array.isArray(b.notes || b.bookNotes)
@@ -572,8 +581,11 @@ export function parseAndNormalizeImport(jsonStr: string): NormalizedImportResult
             createdAt: Number(n.createdAt ?? n.created_at) || Date.now(),
           }))
         : [];
-
-      const allNotes = [...embeddedNotes, ...(notesByBook[id] || [])];
+      const externalNotes = (notesByBook[rawId] || notesByBook[id] || []).map((n) => ({
+        ...n,
+        bookId: id,
+      }));
+      const allNotes = [...embeddedNotes, ...externalNotes];
 
       // Validação estrita de status
       let status: Book['status'] = 'none';

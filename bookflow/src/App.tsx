@@ -91,7 +91,13 @@ const AppContent: React.FC = () => {
   // impedindo que ele permaneça na interface interna da aplicação
   if (!user) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 justify-between">
+      <div
+        className="min-h-screen flex flex-col bg-slate-950 text-slate-100 justify-between"
+        style={{
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+        }}
+      >
         <AuthModal isFullScreen={true} />
         <Footer />
       </div>
@@ -145,12 +151,15 @@ const AppContent: React.FC = () => {
         </div>
       )}
 
-      {/* Banner de Comunicado Global (Broadcast) */}
-      <GlobalBroadcastBanner />
-
       <Navbar />
 
-      <div className="flex-1 flex w-full max-w-[1600px] mx-auto">
+      {/* Container principal com compensação de padding-top para a barra fixa e safe-area */}
+      <div
+        className="flex-1 flex w-full max-w-[1600px] mx-auto min-w-0 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] sm:pt-[calc(4rem+env(safe-area-inset-top,0px))]"
+        style={{
+          paddingTop: 'calc(var(--navbar-height, 56px) + env(safe-area-inset-top, 0px))',
+        }}
+      >
         <Sidebar />
 
         {/* Main Content Area */}
