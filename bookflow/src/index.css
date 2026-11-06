@@ -113,10 +113,64 @@ body[data-accent="sky"] {
   --color-amber-950: #082f49;
 }
 
-body {
+html, body {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  width: 100%;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* ==========================================================================
+   BookFlow - Layout da Barra Superior (Navbar) & Container Responsivo
+   Elimina qualquer desfoque (blur), espaçamento fantasma ou corte no mobile/PWA
+   ========================================================================== */
+
+.app-navbar-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1000;
+  margin: 0;
+  padding-top: env(safe-area-inset-top, 0px);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.app-content-container {
+  padding-top: calc(56px + env(safe-area-inset-top, 0px));
+}
+
+@media (min-width: 640px) {
+  .app-content-container {
+    padding-top: calc(64px + env(safe-area-inset-top, 0px));
+  }
+}
+
+.app-sidebar-sticky {
+  position: sticky;
+  top: calc(56px + env(safe-area-inset-top, 0px));
+  height: calc(100vh - 56px - env(safe-area-inset-top, 0px));
+}
+
+@media (min-width: 640px) {
+  .app-sidebar-sticky {
+    top: calc(64px + env(safe-area-inset-top, 0px));
+    height: calc(100vh - 64px - env(safe-area-inset-top, 0px));
+  }
 }
 
 /* Custom subtle scrollbar */

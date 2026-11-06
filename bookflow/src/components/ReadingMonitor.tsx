@@ -190,9 +190,6 @@ export const ReadingMonitor: React.FC = () => {
 
       {/* Flagship Active Book Card */}
       <div className="p-6 md:p-8 rounded-2xl md:rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
-        {/* Subtle background glow */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-amber-500/5 dark:bg-amber-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
-
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start relative z-10">
           {/* Visual Book Spine & Cover */}
           <div className="w-28 h-40 sm:w-36 sm:h-52 shrink-0 rounded-xl bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-white p-3.5 flex flex-col justify-between shadow-md relative overflow-hidden border border-slate-700/50">

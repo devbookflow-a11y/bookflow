@@ -295,7 +295,7 @@ export const AdminDashboardView: React.FC = () => {
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Top Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200/80 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
         <div className="flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-600 text-white flex items-center justify-center shadow-md shadow-amber-500/20 shrink-0">
             <ShieldCheck className="w-6 h-6" />
@@ -765,9 +765,6 @@ export const AdminDashboardView: React.FC = () => {
 
       {/* Recurso Estratégico: Backup Global da Base de Dados (Exclusivo Administrador) */}
       <div className="p-5 sm:p-7 rounded-3xl bg-gradient-to-br from-white via-white to-amber-50/50 dark:from-slate-900 dark:via-slate-900 dark:to-amber-950/20 border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
-        {/* Subtle decorative glow */}
-        <div className="absolute top-0 right-0 -mt-8 -mr-8 w-44 h-44 bg-amber-500/10 dark:bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
-
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
           <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2.5 flex-wrap">

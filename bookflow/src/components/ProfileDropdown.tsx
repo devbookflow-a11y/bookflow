@@ -343,7 +343,7 @@ export const ProfileDropdown: React.FC = () => {
       {isHealthOpen &&
         createPortal(
           <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-slate-950/80 backdrop-blur-xs overflow-y-auto animate-fade-in select-none"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-slate-950/85 overflow-y-auto animate-fade-in select-none"
             role="dialog"
             aria-modal="true"
             aria-labelledby="health-modal-title"
@@ -463,7 +463,7 @@ export const ProfileDropdown: React.FC = () => {
       {isTermsOpen &&
         createPortal(
           <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-slate-950/80 backdrop-blur-xs overflow-y-auto animate-fade-in select-none"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-slate-950/85 overflow-y-auto animate-fade-in select-none"
             role="dialog"
             aria-modal="true"
             aria-labelledby="terms-modal-title"
@@ -523,7 +523,7 @@ export const ProfileDropdown: React.FC = () => {
       {isPrivacyOpen &&
         createPortal(
           <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-slate-950/80 backdrop-blur-xs overflow-y-auto animate-fade-in select-none"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-slate-950/85 overflow-y-auto animate-fade-in select-none"
             role="dialog"
             aria-modal="true"
             aria-labelledby="privacy-modal-title"

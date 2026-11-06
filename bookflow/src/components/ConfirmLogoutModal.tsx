@@ -25,7 +25,7 @@ export const ConfirmLogoutModal: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in select-none"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 animate-fade-in select-none"
       role="dialog"
       aria-modal="true"
       aria-labelledby="logout-modal-title"
@@ -35,9 +35,6 @@ export const ConfirmLogoutModal: React.FC = () => {
         className="relative w-full max-w-md rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl p-6 sm:p-7 overflow-hidden transition-all transform animate-scale-in"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Glow de fundo */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-rose-500/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
-
         {/* Top Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/80 mb-5 relative z-10">
           <div className="flex items-center gap-2.5">

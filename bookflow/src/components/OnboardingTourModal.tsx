@@ -144,11 +144,8 @@ export const OnboardingTourModal: React.FC<OnboardingTourModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fade-in select-none">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 animate-fade-in select-none">
       <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xl p-6 sm:p-8 flex flex-col justify-between overflow-hidden">
-        {/* Glow ambient */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
-
         {/* Top Header */}
         <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800/80 mb-6 relative z-10">
           <div className="flex items-center gap-2">

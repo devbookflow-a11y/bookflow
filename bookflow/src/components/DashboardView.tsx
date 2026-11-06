@@ -102,9 +102,6 @@ export const DashboardView: React.FC = () => {
       {/* 1. COMPONENTE DE META ANUAL / DESAFIO LITERÁRIO */}
       {/* ========================================================================= */}
       <div className="p-5 sm:p-7 rounded-2xl md:rounded-3xl bg-gradient-to-br from-white to-amber-50/40 dark:from-slate-900 dark:to-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 shadow-xs relative overflow-hidden">
-        {/* Subtle decorative glow */}
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-44 h-44 bg-amber-400/10 dark:bg-amber-500/5 rounded-full blur-2xl pointer-events-none" />
-
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-5">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-2xl bg-amber-500 text-white shadow-sm">

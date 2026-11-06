@@ -69,7 +69,7 @@ export const EditSessionModal: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 overflow-y-auto"
       onClick={closeEditSessionModal}
     >
       <div

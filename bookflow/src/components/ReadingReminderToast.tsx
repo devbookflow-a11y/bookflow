@@ -34,7 +34,7 @@ export const ReadingReminderToast: React.FC = () => {
 
   return (
     <div className="fixed top-5 right-4 sm:right-6 z-50 max-w-sm sm:max-w-md w-full animate-in fade-in slide-in-from-top-4 duration-300">
-      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-600/50 shadow-2xl shadow-amber-500/10 flex flex-col gap-3 relative overflow-hidden backdrop-blur-md">
+      <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-600/50 shadow-2xl shadow-amber-500/10 flex flex-col gap-3 relative overflow-hidden">
         {/* Glow accent */}
         <div className="absolute top-0 left-0 w-1.5 h-full bg-amber-500" />
 

@@ -40,15 +40,7 @@ export const Navbar: React.FC = () => {
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-[1000] w-full min-w-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors pointer-events-auto"
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        paddingTop: 'env(safe-area-inset-top, 0px)',
-      }}
+      className="app-navbar-fixed w-full min-w-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 transition-colors pointer-events-auto"
     >
       <GlobalBroadcastBanner />
       <div className="w-full min-w-0 flex items-center justify-between gap-1.5 sm:gap-4 md:gap-6 px-2.5 sm:px-6 md:px-8 h-14 sm:h-16">

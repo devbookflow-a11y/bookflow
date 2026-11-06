@@ -135,14 +135,9 @@ export const Sidebar: React.FC = () => {
 
   return (
     <aside
-      className={`hidden md:flex flex-col shrink-0 z-20 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 sticky select-none justify-between overflow-y-auto transition-all duration-300 ease-in-out ${
+      className={`app-sidebar-sticky hidden md:flex flex-col shrink-0 z-20 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 select-none justify-between overflow-y-auto transition-all duration-300 ease-in-out ${
         isSidebarCollapsed ? 'w-16 lg:w-20 p-2.5 lg:p-3' : 'w-64 lg:w-72 p-4 lg:p-5'
       }`}
-      style={{
-        position: 'sticky',
-        top: 'calc(4rem + env(safe-area-inset-top, 0px))',
-        height: 'calc(100vh - 4rem - env(safe-area-inset-top, 0px))',
-      }}
     >
       <div className="flex flex-col gap-4">
         {/* Toggle Collapsible Button for Tablet and Desktop */}

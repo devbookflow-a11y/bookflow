@@ -38,9 +38,6 @@ export const MaintenanceScreen: React.FC<MaintenanceScreenProps> = ({
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center p-4 sm:p-6 bg-slate-950 text-slate-100 relative overflow-hidden select-none">
-      {/* Background radial glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
-
       <div className="w-full max-w-lg relative z-10 text-center">
         {/* Animated Brand Icon */}
         <div className="relative w-20 h-20 mx-auto mb-6 flex items-center justify-center">
@@ -81,7 +78,7 @@ export const MaintenanceScreen: React.FC<MaintenanceScreenProps> = ({
         )}
 
         {/* Security & Action Card */}
-        <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800/80 backdrop-blur-sm mb-6 text-xs text-slate-400 space-y-3">
+        <div className="p-5 rounded-2xl bg-slate-900/90 border border-slate-800/80 mb-6 text-xs text-slate-400 space-y-3">
           <div className="flex items-center justify-center gap-1.5 text-slate-300 font-medium">
             <ShieldAlert className="w-4 h-4 text-amber-400" />
             <span>Seus livros e anotações estão 100% seguros</span>

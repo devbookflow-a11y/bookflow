@@ -136,7 +136,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isFullScreen = false }) =>
         className={
           isFullScreen
             ? 'flex-1 flex items-center justify-center p-3 sm:p-5 w-full my-auto animate-in fade-in duration-200'
-            : 'fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/75 backdrop-blur-md overflow-y-auto animate-in fade-in duration-200'
+            : 'fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/80 overflow-y-auto animate-in fade-in duration-200'
         }
       >
         <div
@@ -145,10 +145,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isFullScreen = false }) =>
         >
           {/* COLUNA ESQUERDA: Apresentação Visual e Valor Comercial */}
           <div className="md:col-span-2 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-6 sm:p-8 text-white flex flex-col justify-between relative overflow-hidden border-b md:border-b-0 md:border-r border-slate-800">
-            {/* Ambient Light Glows */}
-            <div className="absolute top-0 right-0 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none -mr-10 -mt-10" />
-            <div className="absolute bottom-0 left-0 w-48 h-48 bg-sky-500/10 rounded-full blur-3xl pointer-events-none -ml-10 -mb-10" />
-
             {/* Top Brand Tag */}
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-6">
@@ -479,7 +475,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isFullScreen = false }) =>
       {activeLegalModal === 'terms' &&
         createPortal(
           <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-slate-950/80 backdrop-blur-xs overflow-y-auto animate-fade-in"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-slate-950/85 overflow-y-auto animate-fade-in"
             role="dialog"
             aria-modal="true"
             onClick={() => setActiveLegalModal(null)}
@@ -538,7 +534,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isFullScreen = false }) =>
       {activeLegalModal === 'privacy' &&
         createPortal(
           <div
-            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-slate-950/80 backdrop-blur-xs overflow-y-auto animate-fade-in"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-5 md:p-6 bg-slate-950/85 overflow-y-auto animate-fade-in"
             role="dialog"
             aria-modal="true"
             onClick={() => setActiveLegalModal(null)}

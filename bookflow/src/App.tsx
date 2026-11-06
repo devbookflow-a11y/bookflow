@@ -132,38 +132,33 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors">
-      {/* Alerta de Modo de Manutenção Ativo (Visível Exclusivamente para o Administrador) */}
-      {maintenance.enabled && isAdmin && (
-        <div className="bg-amber-600 text-slate-950 px-4 py-2 text-xs font-bold flex items-center justify-between gap-3 shadow-sm z-50">
-          <div className="flex items-center gap-2 truncate">
-            <ShieldAlert className="w-4 h-4 shrink-0" />
-            <span className="truncate">
-              Modo de Manutenção ATIVO: Usuários comuns estão vendo a tela de manutenção. Seu acesso de administrador continua liberado.
-            </span>
-          </div>
-          <button
-            onClick={() => setCurrentTab('admin')}
-            className="underline flex items-center gap-1 shrink-0 hover:text-white transition-colors"
-          >
-            <span>Gerenciar no Painel</span>
-            <ArrowRight className="w-3 h-3" />
-          </button>
-        </div>
-      )}
-
       <Navbar />
 
-      {/* Container principal com compensação de padding-top para a barra fixa e safe-area */}
-      <div
-        className="flex-1 flex w-full max-w-[1600px] mx-auto min-w-0 pt-[calc(3.5rem+env(safe-area-inset-top,0px))] sm:pt-[calc(4rem+env(safe-area-inset-top,0px))]"
-        style={{
-          paddingTop: 'calc(var(--navbar-height, 56px) + env(safe-area-inset-top, 0px))',
-        }}
-      >
+      {/* Container principal com compensação exata de padding-top para a barra fixa e safe-area */}
+      <div className="app-content-container flex-1 flex w-full max-w-[1600px] mx-auto min-w-0">
         <Sidebar />
 
         {/* Main Content Area */}
         <main className="flex-1 px-4 sm:px-6 lg:px-8 py-6 pb-24 md:pb-12 min-w-0">
+          {/* Alerta de Modo de Manutenção Ativo (Visível Exclusivamente para o Administrador) */}
+          {maintenance.enabled && isAdmin && (
+            <div className="mb-6 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-900 dark:text-amber-200 px-4 py-3 text-xs font-bold flex items-center justify-between gap-3 shadow-xs">
+              <div className="flex items-center gap-2 truncate">
+                <ShieldAlert className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                <span className="truncate">
+                  Modo de Manutenção ATIVO: Usuários comuns estão vendo a tela de manutenção. Seu acesso de administrador continua liberado.
+                </span>
+              </div>
+              <button
+                onClick={() => setCurrentTab('admin')}
+                className="underline flex items-center gap-1 shrink-0 hover:text-amber-600 dark:hover:text-amber-100 transition-colors"
+              >
+                <span>Gerenciar no Painel</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+
           {renderContent()}
         </main>
       </div>
